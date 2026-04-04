@@ -122,6 +122,10 @@ jobs:
              chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
              /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh dev '${{ secrets.TASK3_IMAGE_NAME }}'"
 
+      - name: Verify dev endpoint
+        run: |
+          curl --fail http://${{ secrets.TASK2_TARGET_HOST }}:8002/
+
       - name: Deploy release
         run: |
           ssh -i ~/.ssh/id_rsa \
@@ -131,10 +135,6 @@ jobs:
             "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
              chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
              /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}'"
-
-      - name: Verify dev endpoint
-        run: |
-          curl --fail http://${{ secrets.TASK2_TARGET_HOST }}:8002/
 
       - name: Verify release endpoint
         run: |
