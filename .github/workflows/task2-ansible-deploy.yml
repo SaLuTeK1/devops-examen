@@ -1,0 +1,72 @@
+name: Task2 Ansible Deploy
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "task2/**"
+      - ".github/workflows/task2-ansible-deploy.yml"
+  workflow_dispatch:
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+
+    env:
+      TARGET_HOST: ${{ secrets.TASK2_TARGET_HOST }}
+      TARGET_USER: ${{ secrets.TASK2_TARGET_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.TASK2_SSH_PRIVATE_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install -y ansible
+          python3 -m pip install --user ansible-lint
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$TARGET_HOST" >> ~/.ssh/known_hosts
+
+      - name: Generate inventory
+        run: |
+          mkdir -p task2/ansible/inventory
+          cat > task2/ansible/inventory/hosts.ini <<EOF
+          [minikube_nodes]
+          target1 ansible_host=${TARGET_HOST}
+
+          [minikube_nodes:vars]
+          ansible_user=${TARGET_USER}
+          ansible_ssh_private_key_file=~/.ssh/id_rsa
+          ansible_python_interpreter=/usr/bin/python3
+          EOF
+
+      - name: Lint playbook
+        working-directory: task2/ansible
+        run: ~/.local/bin/ansible-lint playbook.yml
+
+      - name: Syntax check
+        working-directory: task2/ansible
+        run: ansible-playbook -i inventory/hosts.ini playbook.yml --syntax-check
+
+      - name: Lint playbook
+        working-directory: task2/ansible
+        run: ~/.local/bin/ansible-lint playbook.yml
+
+      - name: Apply playbook
+        working-directory: task2/ansible
+        run: ansible-playbook -i inventory/hosts.ini playbook.yml
+
+      - name: Dry run
+        working-directory: task2/ansible
+        run: ansible-playbook -i inventory/hosts.ini playbook.yml --check
+
+      - name: Apply playbook
+        working-directory: task2/ansible
+        run: ansible-playbook -i inventory/hosts.ini playbook.yml

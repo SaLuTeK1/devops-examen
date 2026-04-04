@@ -18,3 +18,7 @@ override.tf.json
 # Sensitive or local files
 .env
 .env.*
+
+# Ansible temporary files
+*.retry
+task2/ansible/inventory/hosts.ini
