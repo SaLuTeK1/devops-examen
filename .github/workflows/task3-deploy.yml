@@ -121,7 +121,7 @@ jobs:
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
             "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
              chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
-             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}' '1.0.0'"
+             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}' 'develop'"
 
       - name: Verify release endpoint
         run: |
