@@ -1,0 +1,71 @@
+name: Task3 Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to rollback"
+        required: true
+        type: choice
+        options:
+          - dev
+          - release
+      image_tag:
+        description: "Docker image tag to rollback to"
+        required: true
+        default: "1.0.0"
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exam repo
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.TASK2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Copy deployment files
+        run: |
+          scp -i ~/.ssh/id_rsa \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -r task3/deploy \
+            ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }}:/home/${{ secrets.TASK2_TARGET_USER }}/
+
+      - name: Rollback selected environment
+        run: |
+          ssh -i ~/.ssh/id_rsa \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
+            "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
+             chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
+             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh '${{ github.event.inputs.environment }}' '${{ secrets.TASK3_IMAGE_NAME }}' '${{ github.event.inputs.image_tag }}'"
+
+      - name: Verify dev rollback
+        if: ${{ github.event.inputs.environment == 'dev' }}
+        run: |
+          for i in {1..12}; do
+            if curl --fail http://${{ secrets.TASK2_TARGET_HOST }}:8002/; then
+              exit 0
+            fi
+            echo "Dev app is not reachable yet, retrying in 5s..."
+            sleep 5
+          done
+          exit 1
+
+      - name: Verify release rollback
+        if: ${{ github.event.inputs.environment == 'release' }}
+        run: |
+          for i in {1..12}; do
+            if curl --fail http://${{ secrets.TASK2_TARGET_HOST }}:8003/; then
+              exit 0
+            fi
+            echo "Release app is not reachable yet, retrying in 5s..."
+            sleep 5
+          done
+          exit 1

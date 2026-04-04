@@ -1,6 +1,6 @@
 services:
   app:
-    image: ${IMAGE_NAME}:develop
+    image: ${IMAGE_NAME}:${IMAGE_TAG}
     ports:
       - "8002:8000"
     restart: unless-stopped

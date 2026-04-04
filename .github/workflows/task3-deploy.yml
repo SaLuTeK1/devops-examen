@@ -7,23 +7,9 @@ on:
       - "task3/**"
       - ".github/workflows/task3-deploy.yml"
   workflow_dispatch:
-    inputs:
-      environment:
-        description: "Environment to deploy"
-        required: true
-        default: "dev"
-        type: choice
-        options:
-          - dev
-          - release
-      image_tag:
-        description: "Image tag to deploy"
-        required: true
-        default: "develop"
 
 jobs:
   build-dev:
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout develop branch
@@ -42,8 +28,7 @@ jobs:
           password: ${{ secrets.TASK3_DOCKERHUB_TOKEN }}
 
       - name: Build dev image
-        run: |
-          docker build -t ${{ secrets.TASK3_IMAGE_NAME }}:develop .
+        run: docker build -t ${{ secrets.TASK3_IMAGE_NAME }}:develop .
 
       - name: Validate dev image
         run: |
@@ -53,11 +38,9 @@ jobs:
           docker rm -f app-dev-test
 
       - name: Push dev image
-        run: |
-          docker push ${{ secrets.TASK3_IMAGE_NAME }}:develop
+        run: docker push ${{ secrets.TASK3_IMAGE_NAME }}:develop
 
   build-release:
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout tag 1.0.0
@@ -76,8 +59,7 @@ jobs:
           password: ${{ secrets.TASK3_DOCKERHUB_TOKEN }}
 
       - name: Build release image
-        run: |
-          docker build -t ${{ secrets.TASK3_IMAGE_NAME }}:1.0.0 .
+        run: docker build -t ${{ secrets.TASK3_IMAGE_NAME }}:1.0.0 .
 
       - name: Validate release image
         run: |
@@ -87,8 +69,7 @@ jobs:
           docker rm -f app-release-test
 
       - name: Push release image
-        run: |
-          docker push ${{ secrets.TASK3_IMAGE_NAME }}:1.0.0
+        run: docker push ${{ secrets.TASK3_IMAGE_NAME }}:1.0.0
 
   deploy:
     needs: [build-dev, build-release]
@@ -110,7 +91,6 @@ jobs:
             -o UserKnownHostsFile=/dev/null \
             -r task3/deploy \
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }}:/home/${{ secrets.TASK2_TARGET_USER }}/
-          
 
       - name: Deploy dev
         run: |
@@ -120,7 +100,7 @@ jobs:
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
             "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
              chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
-             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh dev '${{ secrets.TASK3_IMAGE_NAME }}'"
+             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh dev '${{ secrets.TASK3_IMAGE_NAME }}' 'develop'"
 
       - name: Verify dev endpoint
         run: |
@@ -128,10 +108,9 @@ jobs:
             if curl --fail http://${{ secrets.TASK2_TARGET_HOST }}:8002/; then
               exit 0
             fi
-            echo "Dev app is not ready yet, retrying in 5s..."
+            echo "Dev app is not reachable yet, retrying in 5s..."
             sleep 5
           done
-          echo "Dev endpoint did not become ready in time"
           exit 1
 
       - name: Deploy release
@@ -142,7 +121,7 @@ jobs:
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
             "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
              chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
-             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}'"
+             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}' '1.0.0'"
 
       - name: Verify release endpoint
         run: |
@@ -150,8 +129,7 @@ jobs:
             if curl --fail http://${{ secrets.TASK2_TARGET_HOST }}:8003/; then
               exit 0
             fi
-            echo "Release app is not ready yet, retrying in 5s..."
+            echo "Release app is not reachable yet, retrying in 5s..."
             sleep 5
           done
-          echo "Release endpoint did not become ready in time"
           exit 1
