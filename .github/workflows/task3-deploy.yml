@@ -100,35 +100,35 @@ jobs:
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "${{ secrets.TASK3_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          printf '%s\n' "${{ secrets.TASK2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
       - name: Copy deployment files
         run: |
           scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r \
             task3/deploy \
-            ${{ secrets.TASK3_TARGET_USER }}@${{ secrets.TASK3_TARGET_HOST }}:/home/${{ secrets.TASK3_TARGET_USER }}/
+            ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }}:/home/${{ secrets.TASK2_TARGET_USER }}/
 
       - name: Deploy dev
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.TASK3_TARGET_USER }}@${{ secrets.TASK3_TARGET_HOST }} \
+            ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
             "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
-             chmod +x /home/${{ secrets.TASK3_TARGET_USER }}/deploy/deploy.sh && \
-             /home/${{ secrets.TASK3_TARGET_USER }}/deploy/deploy.sh dev '${{ secrets.TASK3_IMAGE_NAME }}'"
+             chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
+             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh dev '${{ secrets.TASK3_IMAGE_NAME }}'"
 
       - name: Deploy release
         run: |
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.TASK3_TARGET_USER }}@${{ secrets.TASK3_TARGET_HOST }} \
+            ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
             "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
-             chmod +x /home/${{ secrets.TASK3_TARGET_USER }}/deploy/deploy.sh && \
-             /home/${{ secrets.TASK3_TARGET_USER }}/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}'"
+             chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
+             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}'"
 
       - name: Verify dev endpoint
         run: |
-          curl --fail http://${{ secrets.TASK3_TARGET_HOST }}:8002/
+          curl --fail http://${{ secrets.TASK2_TARGET_HOST }}:8002/
 
       - name: Verify release endpoint
         run: |
-          curl --fail http://${{ secrets.TASK3_TARGET_HOST }}:8003/
+          curl --fail http://${{ secrets.TASK2_TARGET_HOST }}:8003/
