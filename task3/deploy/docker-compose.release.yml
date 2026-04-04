@@ -1,0 +1,7 @@
+services:
+  app:
+    image: ${IMAGE_NAME}:1.0.0
+    container_name: devops-exam-release
+    ports:
+      - "8003:8000"
+    restart: unless-stopped

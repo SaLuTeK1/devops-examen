@@ -1,0 +1,134 @@
+name: Task3 Build and Deploy App
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "task3/**"
+      - ".github/workflows/task3-deploy.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to deploy"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - release
+      image_tag:
+        description: "Image tag to deploy"
+        required: true
+        default: "develop"
+
+jobs:
+  build-dev:
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop branch
+        uses: actions/checkout@v4
+        with:
+          repository: YulianSalo/devops-exam-pt2
+          ref: develop
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.TASK3_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.TASK3_DOCKERHUB_TOKEN }}
+
+      - name: Build dev image
+        run: |
+          docker build -t ${{ secrets.TASK3_IMAGE_NAME }}:develop .
+
+      - name: Validate dev image
+        run: |
+          docker run -d --name app-dev-test -p 18002:8000 ${{ secrets.TASK3_IMAGE_NAME }}:develop
+          sleep 10
+          curl --fail http://127.0.0.1:18002/
+          docker rm -f app-dev-test
+
+      - name: Push dev image
+        run: |
+          docker push ${{ secrets.TASK3_IMAGE_NAME }}:develop
+
+  build-release:
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag 1.0.0
+        uses: actions/checkout@v4
+        with:
+          repository: YulianSalo/devops-exam-pt2
+          ref: 1.0.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.TASK3_DOCKERHUB_USERNAME }}
+          password: ${{ secrets.TASK3_DOCKERHUB_TOKEN }}
+
+      - name: Build release image
+        run: |
+          docker build -t ${{ secrets.TASK3_IMAGE_NAME }}:1.0.0 .
+
+      - name: Validate release image
+        run: |
+          docker run -d --name app-release-test -p 18003:8000 ${{ secrets.TASK3_IMAGE_NAME }}:1.0.0
+          sleep 10
+          curl --fail http://127.0.0.1:18003/
+          docker rm -f app-release-test
+
+      - name: Push release image
+        run: |
+          docker push ${{ secrets.TASK3_IMAGE_NAME }}:1.0.0
+
+  deploy:
+    needs: [build-dev, build-release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exam repo
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.TASK3_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Copy deployment files
+        run: |
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r \
+            task3/deploy \
+            ${{ secrets.TASK3_TARGET_USER }}@${{ secrets.TASK3_TARGET_HOST }}:/home/${{ secrets.TASK3_TARGET_USER }}/
+
+      - name: Deploy dev
+        run: |
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            ${{ secrets.TASK3_TARGET_USER }}@${{ secrets.TASK3_TARGET_HOST }} \
+            "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
+             chmod +x /home/${{ secrets.TASK3_TARGET_USER }}/deploy/deploy.sh && \
+             /home/${{ secrets.TASK3_TARGET_USER }}/deploy/deploy.sh dev '${{ secrets.TASK3_IMAGE_NAME }}'"
+
+      - name: Deploy release
+        run: |
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            ${{ secrets.TASK3_TARGET_USER }}@${{ secrets.TASK3_TARGET_HOST }} \
+            "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
+             chmod +x /home/${{ secrets.TASK3_TARGET_USER }}/deploy/deploy.sh && \
+             /home/${{ secrets.TASK3_TARGET_USER }}/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}'"
+
+      - name: Verify dev endpoint
+        run: |
+          curl --fail http://${{ secrets.TASK3_TARGET_HOST }}:8002/
+
+      - name: Verify release endpoint
+        run: |
+          curl --fail http://${{ secrets.TASK3_TARGET_HOST }}:8003/
