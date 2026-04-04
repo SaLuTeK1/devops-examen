@@ -105,13 +105,18 @@ jobs:
 
       - name: Copy deployment files
         run: |
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r \
-            task3/deploy \
+          scp -i ~/.ssh/id_rsa \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            -r task3/deploy \
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }}:/home/${{ secrets.TASK2_TARGET_USER }}/
+          
 
       - name: Deploy dev
         run: |
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+          ssh -i ~/.ssh/id_rsa \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
             "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
              chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
@@ -119,7 +124,9 @@ jobs:
 
       - name: Deploy release
         run: |
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+          ssh -i ~/.ssh/id_rsa \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
             "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
              chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
