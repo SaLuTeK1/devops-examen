@@ -2,7 +2,7 @@ name: Task1 Terraform Deploy
 
 on:
   push:
-    branches: ["task-1"]
+    branches: ["main"]
     paths:
       - "task1/infra/**"
       - ".github/workflows/task1-terraform-deploy.yml"
