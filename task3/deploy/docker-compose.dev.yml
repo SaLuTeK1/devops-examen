@@ -1,7 +1,6 @@
 services:
   app:
     image: ${IMAGE_NAME}:develop
-    container_name: devops-exam-dev
     ports:
       - "8002:8000"
     restart: unless-stopped
