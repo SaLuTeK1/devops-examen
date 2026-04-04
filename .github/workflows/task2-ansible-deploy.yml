@@ -62,11 +62,3 @@ jobs:
       - name: Apply playbook
         working-directory: task2/ansible
         run: ansible-playbook -i inventory/hosts.ini playbook.yml
-
-      - name: Dry run
-        working-directory: task2/ansible
-        run: ansible-playbook -i inventory/hosts.ini playbook.yml --check
-
-      - name: Apply playbook
-        working-directory: task2/ansible
-        run: ansible-playbook -i inventory/hosts.ini playbook.yml
