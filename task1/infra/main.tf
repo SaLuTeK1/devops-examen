@@ -4,18 +4,13 @@ resource "digitalocean_vpc" "this" {
   ip_range = var.vpc_ip_range
 }
 
-resource "digitalocean_ssh_key" "this" {
-  name       = "${var.prefix}-key"
-  public_key = file("${path.module}/id_rsa.pub")
-}
-
 resource "digitalocean_droplet" "this" {
   name     = "${var.prefix}-node"
   region   = var.region
   size     = var.droplet_size
   image    = var.droplet_image
   vpc_uuid = digitalocean_vpc.this.id
-  ssh_keys = [digitalocean_ssh_key.this.fingerprint]
+  ssh_keys = [var.ssh_key_fingerprint]
   tags     = [var.prefix]
 }
 

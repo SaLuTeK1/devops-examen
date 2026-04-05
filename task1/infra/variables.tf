@@ -3,6 +3,20 @@ variable "do_token" {
   sensitive = true
 }
 
+variable "spaces_access_key_id" {
+  type      = string
+  sensitive = true
+}
+
+variable "spaces_secret_access_key" {
+  type      = string
+  sensitive = true
+}
+
+variable "ssh_key_fingerprint" {
+  type = string
+}
+
 variable "region" {
   type    = string
   default = "fra1"
