@@ -16,8 +16,8 @@ jobs:
 
     env:
       TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
-      SPACES_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
-      SPACES_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_ACCESS_KEY }}
 
     steps:
       - name: Checkout
@@ -26,14 +26,8 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Prepare backend config
-        run: |
-          cp backend.hcl backend.auto.hcl
-          sed -i "s|REPLACE_IN_CI|${SPACES_ACCESS_KEY_ID}|1" backend.auto.hcl
-          sed -i "s|REPLACE_IN_CI|${SPACES_SECRET_ACCESS_KEY}|1" backend.auto.hcl
-
       - name: Terraform Init
-        run: terraform init -backend-config=backend.auto.hcl
+        run: terraform init -backend-config=backend.hcl
 
       - name: Terraform Plan Destroy
         run: terraform plan -destroy -input=false -out=destroyplan
