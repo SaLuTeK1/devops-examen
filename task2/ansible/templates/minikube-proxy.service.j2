@@ -4,9 +4,9 @@ After=network.target docker.service
 Wants=docker.service
 
 [Service]
-User=azureuser
-WorkingDirectory=/home/azureuser
-ExecStart=/usr/local/bin/kubectl proxy --address=0.0.0.0 --accept-hosts='^.*$' --port={{ minikube_proxy_port }}
+User={{ ansible_user }}
+WorkingDirectory=/home/{{ ansible_user }}
+ExecStart=/usr/local/bin/kubectl proxy --address=0.0.0.0 --accept-hosts=^.*$ --port={{ minikube_proxy_port }}
 Restart=always
 RestartSec=5
 
