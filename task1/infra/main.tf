@@ -75,6 +75,6 @@ resource "digitalocean_firewall" "this" {
 }
 
 resource "digitalocean_spaces_bucket" "this" {
-  name   = "${var.prefix}-bucket"
+  name   = "babiichuk-bucket"
   region = var.region
 }
