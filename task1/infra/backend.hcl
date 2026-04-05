@@ -1,4 +1,11 @@
-resource_group_name  = "babiichuk-tfstate-rg"
-storage_account_name = "babiichuktfstate"
-container_name       = "tfstate"
-key                  = "infra.tfstate"
+bucket                      = "babiichuk-tfstate"
+key                         = "task1/terraform.tfstate"
+region                      = "us-east-1"
+endpoint                    = "https://fra1.digitaloceanspaces.com"
+access_key                  = "REPLACE_IN_CI"
+secret_key                  = "REPLACE_IN_CI"
+skip_credentials_validation = true
+skip_metadata_api_check     = true
+skip_region_validation      = true
+skip_requesting_account_id  = true
+use_path_style              = false

@@ -1,20 +1,19 @@
-output "public_ip" {
-  value = azurerm_public_ip.pip.ip_address
+output "droplet_name" {
+  value = digitalocean_droplet.this.name
 }
 
-output "vm_name" {
-  value = azurerm_linux_virtual_machine.vm.name
+output "droplet_ip" {
+  value = digitalocean_droplet.this.ipv4_address
 }
 
-output "resource_group_name" {
-  value = azurerm_resource_group.rg.name
+output "vpc_name" {
+  value = digitalocean_vpc.this.name
 }
 
-output "storage_account_name" {
-  value = azurerm_storage_account.bucket.name
+output "firewall_name" {
+  value = digitalocean_firewall.this.name
 }
 
-output "ssh_private_key_pem" {
-  value     = tls_private_key.ssh.private_key_pem
-  sensitive = true
+output "bucket_name" {
+  value = digitalocean_spaces_bucket.this.name
 }

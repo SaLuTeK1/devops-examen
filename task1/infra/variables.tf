@@ -1,26 +1,11 @@
-variable "subscription_id" {
+variable "do_token" {
   type      = string
   sensitive = true
 }
 
-variable "tenant_id" {
-  type      = string
-  sensitive = true
-}
-
-variable "client_id" {
-  type      = string
-  sensitive = true
-}
-
-variable "client_secret" {
-  type      = string
-  sensitive = true
-}
-
-variable "location" {
+variable "region" {
   type    = string
-  default = "francecentral"
+  default = "fra1"
 }
 
 variable "prefix" {
@@ -28,12 +13,17 @@ variable "prefix" {
   default = "babiichuk"
 }
 
-variable "admin_username" {
+variable "vpc_ip_range" {
   type    = string
-  default = "azureuser"
+  default = "10.10.10.0/24"
 }
 
-variable "vm_size" {
+variable "droplet_size" {
   type    = string
-  default = "Standard_D2s_v3"
+  default = "s-2vcpu-4gb"
+}
+
+variable "droplet_image" {
+  type    = string
+  default = "ubuntu-24-04-x64"
 }

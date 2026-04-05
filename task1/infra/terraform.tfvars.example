@@ -1,9 +1,0 @@
-subscription_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-tenant_id       = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-client_id       = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-client_secret   = "super-secret"
-
-location        = "francecentral"
-prefix          = "babiichuk"
-admin_username  = "azureuser"
-vm_size         = "Standard_D2s_v3"
