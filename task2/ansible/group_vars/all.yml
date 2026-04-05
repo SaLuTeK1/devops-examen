@@ -1,6 +1,7 @@
 minikube_driver: docker
-minikube_memory: "3800"
+minikube_memory: "2800"
 minikube_cpus: "2"
 minikube_profile: "minikube"
 minikube_k8s_version: "stable"
 minikube_proxy_port: 8001
+minikube_run_user: "minikube"
