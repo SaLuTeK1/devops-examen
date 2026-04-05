@@ -37,14 +37,21 @@ jobs:
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }}:/root/
 
       - name: Rollback selected environment
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.TASK3_DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.TASK3_DOCKERHUB_TOKEN }}
+          IMAGE_NAME: ${{ secrets.TASK3_IMAGE_NAME }}
+          ROLLBACK_ENV: ${{ github.event.inputs.environment }}
+          ROLLBACK_TAG: ${{ github.event.inputs.image_tag }}
         run: |
           ssh -i ~/.ssh/id_rsa \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
-            "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
-             chmod +x /root/deploy/deploy.sh && \
-              /root/deploy/deploy.sh '${{ github.event.inputs.environment }}' '${{ secrets.TASK3_IMAGE_NAME }}' '${{ github.event.inputs.image_tag }}'
+            root@${{ secrets.TASK2_TARGET_HOST }} <<EOF
+              echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+              chmod +x /root/deploy/deploy.sh
+              /root/deploy/deploy.sh "$ROLLBACK_ENV" "$IMAGE_NAME" "$ROLLBACK_TAG"
+          EOF
 
       - name: Verify dev rollback
         if: ${{ github.event.inputs.environment == 'dev' }}

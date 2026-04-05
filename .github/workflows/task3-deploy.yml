@@ -2,7 +2,7 @@ name: Task3 Build and Deploy App
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
     paths:
       - "task3/**"
       - ".github/workflows/task3-deploy.yml"
@@ -72,7 +72,7 @@ jobs:
         run: docker push ${{ secrets.TASK3_IMAGE_NAME }}:1.0.0
 
   deploy:
-    needs: [build-dev, build-release]
+    needs: [ build-dev, build-release ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout exam repo
@@ -93,14 +93,19 @@ jobs:
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }}:/root/
 
       - name: Deploy dev
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.TASK3_DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.TASK3_DOCKERHUB_TOKEN }}
+          IMAGE_NAME: ${{ secrets.TASK3_IMAGE_NAME }}
         run: |
           ssh -i ~/.ssh/id_rsa \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
-            "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
-            chmod +x /root/deploy/deploy.sh && \
-            /root/deploy/deploy.sh dev '${{ secrets.TASK3_IMAGE_NAME }}' 'develop'
+            root@${{ secrets.TASK2_TARGET_HOST }} <<EOF
+              echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+              chmod +x /root/deploy/deploy.sh
+              /root/deploy/deploy.sh dev "$IMAGE_NAME" develop
+          EOF
 
       - name: Verify dev endpoint
         run: |
@@ -114,14 +119,19 @@ jobs:
           exit 1
 
       - name: Deploy release
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.TASK3_DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.TASK3_DOCKERHUB_TOKEN }}
+          IMAGE_NAME: ${{ secrets.TASK3_IMAGE_NAME }}
         run: |
           ssh -i ~/.ssh/id_rsa \
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
-            ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
-            "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
-             chmod +x /root/deploy/deploy.sh && \
-              /root/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}' '1.0.0'
+            root@${{ secrets.TASK2_TARGET_HOST }} <<EOF
+              echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+              chmod +x /root/deploy/deploy.sh
+              /root/deploy/deploy.sh release "$IMAGE_NAME" 1.0.0
+          EOF
 
       - name: Verify release endpoint
         run: |
