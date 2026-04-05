@@ -53,7 +53,6 @@ jobs:
             if curl --fail http://${{ secrets.TASK2_TARGET_HOST }}:8002/; then
               exit 0
             fi
-            echo "Dev app is not reachable yet, retrying in 5s..."
             sleep 5
           done
           exit 1
@@ -65,7 +64,6 @@ jobs:
             if curl --fail http://${{ secrets.TASK2_TARGET_HOST }}:8003/; then
               exit 0
             fi
-            echo "Release app is not reachable yet, retrying in 5s..."
             sleep 5
           done
           exit 1
