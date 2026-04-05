@@ -90,7 +90,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -o UserKnownHostsFile=/dev/null \
             -r task3/deploy \
-            ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }}:/home/${{ secrets.TASK2_TARGET_USER }}/
+            ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }}:/root/
 
       - name: Deploy dev
         run: |
@@ -99,8 +99,8 @@ jobs:
             -o UserKnownHostsFile=/dev/null \
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
             "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
-             chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
-             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh dev '${{ secrets.TASK3_IMAGE_NAME }}' 'develop'"
+            chmod +x /root/deploy/deploy.sh && \
+            /root/deploy/deploy.sh dev '${{ secrets.TASK3_IMAGE_NAME }}' 'develop'
 
       - name: Verify dev endpoint
         run: |
@@ -120,8 +120,8 @@ jobs:
             -o UserKnownHostsFile=/dev/null \
             ${{ secrets.TASK2_TARGET_USER }}@${{ secrets.TASK2_TARGET_HOST }} \
             "docker login -u '${{ secrets.TASK3_DOCKERHUB_USERNAME }}' -p '${{ secrets.TASK3_DOCKERHUB_TOKEN }}' && \
-             chmod +x /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh && \
-             /home/${{ secrets.TASK2_TARGET_USER }}/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}' '1.0.0'"
+             chmod +x /root/deploy/deploy.sh && \
+              /root/deploy/deploy.sh release '${{ secrets.TASK3_IMAGE_NAME }}' '1.0.0'
 
       - name: Verify release endpoint
         run: |
