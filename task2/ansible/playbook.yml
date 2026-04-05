@@ -153,6 +153,32 @@
         remote_src: true
         mode: "0755"
 
+    - name: Ensure Ansible remote tmp directory exists
+      ansible.builtin.file:
+        path: "/home/{{ minikube_run_user }}/.ansible/tmp"
+        state: directory
+        owner: "{{ minikube_run_user }}"
+        group: "{{ minikube_run_user }}"
+        mode: "0700"
+
+    - name: Remove broken Minikube profile if exists
+      become: true
+      become_user: "{{ minikube_run_user }}"
+      environment:
+        HOME: "/home/{{ minikube_run_user }}"
+      ansible.builtin.command: minikube delete --profile={{ minikube_profile }}
+      failed_when: false
+      changed_when: false
+
+    - name: Pre-pull Minikube base image
+      become: true
+      become_user: "{{ minikube_run_user }}"
+      environment:
+        HOME: "/home/{{ minikube_run_user }}"
+      ansible.builtin.command: >
+        docker pull {{ minikube_base_image }}
+      changed_when: false
+
     - name: Start Minikube
       become: true
       become_user: "{{ minikube_run_user }}"
@@ -162,9 +188,18 @@
       ansible.builtin.command: >
         minikube start
         --driver={{ minikube_driver }}
+        --container-runtime=docker
         --memory={{ minikube_memory }}
         --cpus={{ minikube_cpus }}
         --profile={{ minikube_profile }}
+        --kubernetes-version={{ minikube_k8s_version }}
+        --base-image={{ minikube_base_image }}
+        --delete-on-failure
+        --force
+      register: minikube_start
+      retries: 2
+      delay: 15
+      until: minikube_start.rc == 0
       args:
         creates: "/home/{{ minikube_run_user }}/.minikube/profiles/{{ minikube_profile }}/config.json"
 
@@ -181,6 +216,14 @@
     - name: Verify Helm installation
       ansible.builtin.command: helm version
       register: helm_check
+      changed_when: false
+
+    - name: Update kubectl context for Minikube
+      become: true
+      become_user: "{{ minikube_run_user }}"
+      environment:
+        HOME: "/home/{{ minikube_run_user }}"
+      ansible.builtin.command: minikube update-context --profile={{ minikube_profile }}
       changed_when: false
 
     - name: Verify Kubernetes node
